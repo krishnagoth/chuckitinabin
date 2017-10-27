@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Simple Map</title>
+  <meta name="viewport" content="initial-scale=1.0">
+  <meta charset="utf-8">
+  <style>
+    /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+
+    #map {
+      height: 50%;
+    }
+    /* Optional: Makes the sample page fill the window. */
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <script src='map.js'></script>
+</head>
+
+<body>
+  <div id="map"></div>
+  <input type='button' onclick='addLocation(this)' value='Add Location'></button>
+  <script src='https://maps.googleapis.com/maps/api/js?key=<%= apiKey %>&callback=initMap&&libraries=drawing'
+    async defer></script>
+</body>
+
+</html>
