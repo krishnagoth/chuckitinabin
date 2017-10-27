@@ -48,12 +48,9 @@ new Promise((resolve, reject) => {
   app.get('/api/locations/:id', (req, res) => {
     res.status(200);
     res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify({
-      data: locationsCollection.findOne({ id: req.params.id }, (err, document) => {
-        if (err) throw err;
-        return document;
-      })
-    }));
+    locationsCollection.findOne({ id: req.params.id })
+      .then((document) => res.send(JSON.stringify({ data: document })))
+      .catch((err) => console.error(`Location not found by id ${req.params.id}: ${err.message}`));
   });
 
   app.post('/api/locations/search', (req, res) => {
