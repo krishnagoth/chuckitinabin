@@ -155,7 +155,7 @@ function loadLocations(map) {
             map.data.add({
               geometry: feature.getGeometry(),
               id: loc.id,
-              properties: {}
+              properties: {log: loc.log}
             });
           });
         }
