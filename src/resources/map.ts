@@ -1,4 +1,9 @@
-var map;
+import 'googlemaps';
+import * as Ax from 'axios';
+import { ApiOps, LogEntry, RubbishLocation } from '../common';
+
+const axios = Ax.default;
+let map: google.maps.Map;
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
@@ -16,8 +21,8 @@ function initMap() {
     }, function () { });
   }
 
-  map.addListener('tilesloaded', function (event) {
-    var bounds = map.getBounds();
+  map.addListener('tilesloaded', function () {
+    var bounds: google.maps.LatLngBounds = map.getBounds();
     console.log(`Map is dragged to ${JSON.stringify(bounds.toJSON())}`);
     loadLocations(map);
   });
@@ -44,16 +49,15 @@ function initMap() {
   });
 }
 
-function addLocation(button) {
+function addLocation(button: HTMLButtonElement) {
   button.setAttribute('style', 'display: none');
-  var drawingManager = new google.maps.drawing.DrawingManager({
-    drawingMode: google.maps.drawing.OverlayType.MARKER,
+  var drawingManager: google.maps.drawing.DrawingManager = new google.maps.drawing.DrawingManager({
+    drawingMode: google.maps.drawing.OverlayType.POLYGON,
     drawingControl: true,
     drawingControlOptions: {
       position: google.maps.ControlPosition.TOP_CENTER,
-      drawingModes: ['polygon', 'polyline']
+      drawingModes: [google.maps.drawing.OverlayType.POLYGON]
     },
-    markerOptions: { icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png' },
     circleOptions: {
       fillColor: '#ffff00',
       fillOpacity: 1,
@@ -73,13 +77,15 @@ function addLocation(button) {
   }
 
   drawingManager.setMap(map);
-  google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event) {
-    if (event.type === 'polygon') {
+  google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event: google.maps.drawing.OverlayCompleteEvent) {
+    if (event.type === google.maps.drawing.OverlayType.POLYGON) {
 
-      var locationFeature;
-      console.log(`Overlay coords ${JSON.stringify(event.overlay.getPath().getArray(), null, 2)}`);
-      if (event.type === 'polygon') {
-        locationFeature = new google.maps.Data.Feature({ geometry: new google.maps.Data.Polygon([event.overlay.getPath().getArray()]) });
+      const overlay: google.maps.Polygon = event.overlay as google.maps.Polygon;
+
+      var locationFeature: google.maps.Data.Feature;
+      console.log(`Overlay coords ${JSON.stringify(overlay.getPath().getArray(), null, 2)}`);
+      if (event.type === google.maps.drawing.OverlayType.POLYGON) {
+        locationFeature = new google.maps.Data.Feature({ geometry: new google.maps.Data.Polygon([overlay.getPath().getArray()]) });
       }
 
       var formDiv = document.createElement('div');
@@ -88,23 +94,24 @@ function addLocation(button) {
 
       var popup = new google.maps.InfoWindow({
         content: formDiv,
-        position: event.overlay.getPath().getArray()[event.overlay.getPath().getArray().length - 1]
+        position: overlay.getPath().getArray()[overlay.getPath().getArray().length - 1]
       });
 
-      var f = cancelBtn.onclick;
-      cancelBtn.onclick = function () {
+      cancelBtn.onclick = function (this: HTMLElement, ev: MouseEvent) {
         popup.close();
         map.data.remove(locationFeature);
         event.overlay.setVisible(false);
-        f();
+        drawingManager.setMap(null);
+        button.setAttribute('style', '');
+        cancelBtn.setAttribute('style', 'display: none');
       }
 
       popup.addListener('domready', function (ev) {
         locationFeature.toGeoJson(function (geojson) {
-          document.getElementById('location-geojson').value = JSON.stringify(geojson);
+          document.getElementById('location-geojson').setAttribute('value', JSON.stringify(geojson));
         });
         document.getElementById('edit-location-dialogue').getElementsByTagName('form')[0].addEventListener('change', function (e) {
-          locationFeature.setProperty('log', [{ description: document.getElementById('location-log-entry').value }]);
+          locationFeature.setProperty('log', [{ description: document.getElementById('location-log-entry').getAttribute('value') }]);
         });
         document.getElementById('edit-location-dialogue').getElementsByTagName('form')[0].addEventListener('submit', function (e) {
           popup.close();
@@ -120,65 +127,59 @@ function addLocation(button) {
   });
 }
 
-function saveLocation(form) {
+function saveLocation(form: HTMLFormElement) {
   var fd = new FormData(form);
-  var location = {
-    geojson: JSON.parse(fd.get('geojson')),
-    log: [{
-      description: fd.get('logEntry')
-    }]
-  };
+
   console.log(`Sending poly data ${JSON.stringify(location, null, 2)}`);
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', form.action);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.send(JSON.stringify(location));
+  axios.post(form.action, new RubbishLocation(JSON.parse(fd.get('geojson').toString()), [new LogEntry(fd.get('logEntry').toString())]));
 }
 
-
-function loadLocations(map) {
+function loadLocations(map: google.maps.Map) {
   var xhr = new XMLHttpRequest();
-  var featuresIds = [];
-  map.data.forEach(function (feature) {
+  var featuresIds: Array<string | number> = [];
+  map.data.forEach(function (feature: google.maps.Data.Feature) {
     if (feature.getId()) {
       featuresIds.push(feature.getId());
     }
   });
-  xhr.open('POST', `/api/locations/search?bounds=${JSON.stringify(map.getBounds().toJSON())}&notIn=${JSON.stringify(featuresIds)}`);
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-      var locations = JSON.parse(xhr.responseText).data;
-      console.log(`Got locations ${JSON.stringify(locations, null, 2)}`);
-      for (var loc of locations) {
-        if (!map.data.getFeatureById(loc.id)) {
-          map.data.addGeoJson(loc.geojson).forEach((feature) => {
-            map.data.add({
-              geometry: feature.getGeometry(),
-              id: loc.id,
-              properties: {log: loc.log}
+
+  axios.post<ApiOps.Result>(`/api/locations/search?bounds=${JSON.stringify(map.getBounds().toJSON())}&notIn=${JSON.stringify(featuresIds)}`)
+    .then((res: Ax.AxiosResponse<ApiOps.Result>) => {
+      if (res.status === 200) {
+        for (var loc of res.data.data as Array<RubbishLocation>) {
+          if (!map.data.getFeatureById(loc.id)) {
+            map.data.addGeoJson(loc.geojson).forEach((feature: google.maps.Data.Feature) => {
+              map.data.add(new google.maps.Data.Feature({
+                geometry: feature.getGeometry(),
+                id: loc.id,
+                properties: { log: loc.log }
+              }));
             });
-          });
+          }
         }
+      } else {
+        throw new Error(`Got unexpected response ${JSON.stringify(res, null, 2)}`);
       }
-    }
-  };
-  xhr.send();
+    })
+    .catch((err: Error) => {
+      console.error(err);
+    });
 }
 
-function attachLog(locationId, cb) {
+function attachLog(locationId: string | number, cb: () => void) {
   if (!map.data.getFeatureById(locationId).getProperty('log')) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', `/api/locations/${locationId}`);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-        var location = JSON.parse(xhr.responseText).data;
-        console.log(`Got location ${JSON.stringify(location, null, 2)}`);
-        map.data.getFeatureById(locationId).setProperty('log', location.log ? location.log : []);
-        cb();
-      }
-    };
-    xhr.send();
+    axios.get<ApiOps.Result>(`/api/locations/${locationId}`)
+      .then((res: Ax.AxiosResponse<ApiOps.Result>) => {
+        if (res.status === 200) {
+          var location = res.data.data as RubbishLocation;
+          console.log(`Got location ${JSON.stringify(location, null, 2)}`);
+          map.data.getFeatureById(locationId).setProperty('log', location.log);
+          cb();
+        }
+      });
   } else {
     cb();
   }
 }
+
+(<any>window).initMap = initMap;

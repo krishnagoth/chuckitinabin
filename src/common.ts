@@ -1,22 +1,36 @@
 import { GeoJsonObject } from 'geojson';
 
-export interface RubbishLocation {
-  _id?: string
-  id: string
-  geojson: GeoJson
-  log?: Log
+export class RubbishLocation {
+  readonly id?: string
+  readonly geojson: GeoJsonObject
+  readonly log: Log = []
+  constructor(geojson: GeoJsonObject, log: Log, id?: string) {
+    this.id = id;
+    this.geojson = geojson;
+    this.log = log;
+  }
 }
 
-export type GeoJson = GeoJsonObject;
+export class RubbishLocationDbEntry extends RubbishLocation {
+  readonly _id: string;
+  constructor(_id: string, geojson: GeoJsonObject, log: Log, id?: string) {
+    super(geojson, log, id);
+    this._id = _id;
+  }
+}
+
 export type Log = Array<LogEntry>;
 
-export interface LogEntry {
-  description: string
+export class LogEntry {
+  readonly description: string
+  constructor(description: string) {
+    this.description = description;
+  }
 }
 
 export namespace ApiOps {
   export class Result {
-    protected data: ResultTypes;
+    readonly data: ResultTypes;
     constructor(data: ResultTypes) {
       this.data = data;
     }

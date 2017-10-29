@@ -12,7 +12,7 @@ const app: express.Application = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
-app.use(express.static('src/resources'));
+app.use(express.static('./dist'));
 
 async function connectToDb(): Promise<mongodb.Db> {
   const mongoClient: mongodb.MongoClient = mongodb.MongoClient;
@@ -33,7 +33,7 @@ function addRoutes(db: mongodb.Db): void {
       req.body.log = [];
     }
     const id: string = uuid();
-    locationsCollection.save(Object.assign({ id: id }, req.body) as RubbishLocation).then((result: mongodb.WriteOpResult) => {
+    locationsCollection.save(new RubbishLocation(req.body.geojson, req.body.log, id)).then((result: mongodb.WriteOpResult) => {
       console.log(result.result);
       res.status(200);
       res.send(new ApiOps.Result({ id: id }).toString());
