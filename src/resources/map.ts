@@ -1,9 +1,8 @@
-import 'googlemaps';
-import * as Ax from 'axios';
+import { } from '@types/googlemaps';
+import { AxiosResponse, default as axios } from 'axios';
 import { ApiOps, LogEntry, RubbishLocation } from '../common';
 
-const axios = Ax.default;
-let map: google.maps.Map;
+var map: google.maps.Map;
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
@@ -23,10 +22,9 @@ function initMap() {
 
   map.addListener('tilesloaded', function () {
     var bounds: google.maps.LatLngBounds = map.getBounds();
-    console.log(`Map is dragged to ${JSON.stringify(bounds.toJSON())}`);
     loadLocations(map);
   });
-  map.data.addListener('click', function (dataClick) {
+  map.data.addListener('click', function (dataClick: google.maps.Data.MouseEvent) {
 
     var div = document.createElement('div');
 
@@ -57,14 +55,6 @@ function addLocation(button: HTMLButtonElement) {
     drawingControlOptions: {
       position: google.maps.ControlPosition.TOP_CENTER,
       drawingModes: [google.maps.drawing.OverlayType.POLYGON]
-    },
-    circleOptions: {
-      fillColor: '#ffff00',
-      fillOpacity: 1,
-      strokeWeight: 5,
-      clickable: false,
-      editable: true,
-      zIndex: 1
     }
   });
 
@@ -85,7 +75,9 @@ function addLocation(button: HTMLButtonElement) {
       var locationFeature: google.maps.Data.Feature;
       console.log(`Overlay coords ${JSON.stringify(overlay.getPath().getArray(), null, 2)}`);
       if (event.type === google.maps.drawing.OverlayType.POLYGON) {
-        locationFeature = new google.maps.Data.Feature({ geometry: new google.maps.Data.Polygon([overlay.getPath().getArray()]) });
+        locationFeature = new google.maps.Data.Feature({
+          geometry: new google.maps.Data.Polygon([overlay.getPath().getArray()])
+        });
       }
 
       var formDiv = document.createElement('div');
@@ -129,22 +121,29 @@ function addLocation(button: HTMLButtonElement) {
 
 function saveLocation(form: HTMLFormElement) {
   var fd = new FormData(form);
-
-  console.log(`Sending poly data ${JSON.stringify(location, null, 2)}`);
-  axios.post(form.action, new RubbishLocation(JSON.parse(fd.get('geojson').toString()), [new LogEntry(fd.get('logEntry').toString())]));
+  axios.post<ApiOps.Result<ApiOps.RubbishLocationId>>(
+    form.action,
+    new RubbishLocation(
+      JSON.parse(fd.get('geojson').toString()),
+      [new LogEntry(fd.get('logEntry').toString())]
+    )
+  ).then((res: AxiosResponse<ApiOps.Result<ApiOps.RubbishLocationId>>) => {
+    if (res.status === 200) {
+      const locationId = res.data.data.id;
+    }
+  });
 }
 
 function loadLocations(map: google.maps.Map) {
-  var xhr = new XMLHttpRequest();
   var featuresIds: Array<string | number> = [];
-  map.data.forEach(function (feature: google.maps.Data.Feature) {
+  map.data.forEach((feature: google.maps.Data.Feature) => {
     if (feature.getId()) {
       featuresIds.push(feature.getId());
     }
   });
 
-  axios.post<ApiOps.Result>(`/api/locations/search?bounds=${JSON.stringify(map.getBounds().toJSON())}&notIn=${JSON.stringify(featuresIds)}`)
-    .then((res: Ax.AxiosResponse<ApiOps.Result>) => {
+  axios.post<ApiOps.Result<ApiOps.RubbishLocations>>(`/api/locations/search?bounds=${JSON.stringify(map.getBounds().toJSON())}&notIn=${JSON.stringify(featuresIds)}`)
+    .then((res: AxiosResponse<ApiOps.Result<ApiOps.RubbishLocations>>) => {
       if (res.status === 200) {
         for (var loc of res.data.data as Array<RubbishLocation>) {
           if (!map.data.getFeatureById(loc.id)) {
@@ -168,8 +167,8 @@ function loadLocations(map: google.maps.Map) {
 
 function attachLog(locationId: string | number, cb: () => void) {
   if (!map.data.getFeatureById(locationId).getProperty('log')) {
-    axios.get<ApiOps.Result>(`/api/locations/${locationId}`)
-      .then((res: Ax.AxiosResponse<ApiOps.Result>) => {
+    axios.get<ApiOps.Result<RubbishLocation>>(`/api/locations/${locationId}`)
+      .then((res: AxiosResponse<ApiOps.Result<RubbishLocation>>) => {
         if (res.status === 200) {
           var location = res.data.data as RubbishLocation;
           console.log(`Got location ${JSON.stringify(location, null, 2)}`);
@@ -183,3 +182,5 @@ function attachLog(locationId: string | number, cb: () => void) {
 }
 
 (<any>window).initMap = initMap;
+(<any>window).addLocation = addLocation;
+(<any>window).saveLocation = saveLocation;

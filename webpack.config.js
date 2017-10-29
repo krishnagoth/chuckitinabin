@@ -1,33 +1,32 @@
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
   entry: './src/resources/map.ts',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
-    libraryTarget: 'var',
-    library: 'BundledMap'
+    path: path.resolve(__dirname, 'dist')
   },
   module: {
     rules: [
       {
         test: /\.json$/,
-        use: 'json-loader'
+        loader: 'json-loader',
+        exclude: /node_modules/
       },
       {
         test: /\.tsx?$/,
-        use: 'ts-loader'
+        use: ['babel-loader', 'ts-loader'],
+        exclude: /node_modules/
       },
     ]
   },
   devtool: 'source-map',
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".json"]
-  },
-  node: {
-    console: false,
-    fs: 'empty',
-    net: 'empty',
-    tls: 'empty'
+    extensions: [".js", ".ts", ".json"],
+    modules: [
+      path.join(__dirname, "src"),
+      path.join(__dirname, "node_modules")
+    ]
   }
 };

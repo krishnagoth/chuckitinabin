@@ -29,17 +29,18 @@ export class LogEntry {
 }
 
 export namespace ApiOps {
-  export class Result {
-    readonly data: ResultTypes;
-    constructor(data: ResultTypes) {
+  export class Result<T extends ResultTypes> {
+    readonly data: T;
+    constructor(data: T) {
       this.data = data;
     }
-    toString() {
+    toString(): string {
       return JSON.stringify(this);
     }
   }
-  type RubbishLocationId = {
+  export type RubbishLocationId = {
     id: string
   }
-  type ResultTypes = RubbishLocationId | Array<RubbishLocation> | RubbishLocation;
+  export type RubbishLocations = Array<RubbishLocation>;
+  type ResultTypes = RubbishLocationId | RubbishLocations | RubbishLocation;
 }
