@@ -21,14 +21,15 @@
       padding: 0;
     }
   </style>
-  <script src='map.js'></script>
+  <script src="https://unpkg.com/axios@0.17.0/dist/axios.min.js"></script>
+  <script src='bundle.js'></script>
 </head>
 
 <body>
   <div id="map"></div>
   <input type='button' onclick='addLocation(this)' value='Add Location'></button>
-  <script src='https://maps.googleapis.com/maps/api/js?key=<%= apiKey %>&callback=initMap&&libraries=drawing'
-    async defer></script>
+  <input type='button' value='Cancel Edit' style='display: none' id='cancel-edit-btn'></button>
+  <script src='https://maps.googleapis.com/maps/api/js?key=<%= apiKey %>&callback=initMap&&libraries=drawing' async defer></script>
 </body>
 
 </html>
