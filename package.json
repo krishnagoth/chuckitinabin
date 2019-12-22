@@ -15,7 +15,7 @@
     "@types/geojson": "^7946.0.7",
     "@types/googlemaps": "^3.29.2",
     "@types/mongodb": "^3.3.13",
-    "@types/node": "^8.0.47",
+    "@types/node": "12",
     "@types/uuid": "^3.4.3",
     "babel-core": "^6.26.0",
     "babel-loader": "^8.0.6",
@@ -28,7 +28,7 @@
     "ts-node": "^8.5.4",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.7.4",
-    "uglifyjs-webpack-plugin": "^1.0.1",
+    "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.41.4",
     "webpack-bundle-analyzer": "^3.6.0",
     "webpack-cli": "^3.3.10"
@@ -36,7 +36,6 @@
   "scripts": {
     "start": "yarn webpack-build && ts-node src/index.ts",
     "start:dev": "ts-node-dev src/index.ts",
-    "build": "tsc && yarn webpack-build",
-    "webpack-build": "webpack"
+    "build": "tsc && yarn webpack-build"
   }
 }

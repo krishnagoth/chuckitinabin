@@ -68,8 +68,9 @@ const addRoutes = async (db: Promise<mongodb.Db>): Promise<void> => {
     let bounds;
     let notIn = [];
     try {
-      bounds = JSON.parse(url.parse(req.url, true).query.bounds);
-      notIn = JSON.parse(url.parse(req.url, true).query.notIn);
+      const query = url.parse(req.url, true).query;
+      bounds = JSON.parse(typeof query.bounds === 'string' && query.bounds);
+      notIn = JSON.parse(typeof query.notIn === 'string' && query.notIn);
       console.log(`Bounds ${JSON.stringify(bounds)}\nNot in ${notIn}`);
       locationsCollection.find<RubbishLocation>({
         $and: [{
