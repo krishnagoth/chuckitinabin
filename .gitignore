@@ -1,4 +1,6 @@
 src/config.ts
+src/config.json
 node_modules
 out
 dist
+yarn-error.log

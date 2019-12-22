@@ -1,4 +1,3 @@
-import { } from '@types/googlemaps';
 import { AxiosResponse, default as axios } from 'axios';
 import { ApiOps, LogEntry, RubbishLocation } from '../common';
 

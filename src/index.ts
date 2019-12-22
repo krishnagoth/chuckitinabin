@@ -1,10 +1,9 @@
-import config from './config';
+import * as config from './config.json';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as uuid from 'uuid/v4';
 import * as url from 'url';
 import * as mongodb from 'mongodb';
-import * as http from 'http';
 import { RubbishLocation, ApiOps } from './common';
 
 const app: express.Application = express();
@@ -14,20 +13,22 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.use(express.static('./dist'));
 
-async function connectToDb(): Promise<mongodb.Db> {
-  const mongoClient: mongodb.MongoClient = mongodb.MongoClient;
-  return mongoClient.connect(config.mongo.connectionUrl);
+const connectToDb = async (): Promise<mongodb.Db> => {
+  const mongoClient: mongodb.MongoClient = new mongodb.MongoClient(config.mongo.connectionUrl, {
+    useUnifiedTopology: true
+  });
+  await mongoClient.connect();
+  return mongoClient.db();
 }
 
-function addRoutes(db: mongodb.Db): void {
-
-  const locationsCollection: mongodb.Collection = db.collection('locations');
+const addRoutes = async (db: Promise<mongodb.Db>): Promise<void> => {
 
   app.get('/', (req: express.Request, res: express.Response) => {
     res.render(__dirname + '/resources/index.ejs', config.google);
   });
 
-  app.post('/api/locations', (req: express.Request, res: express.Response) => {
+  app.post('/api/locations', async (req: express.Request, res: express.Response) => {
+    const locationsCollection: mongodb.Collection = (await db).collection('locations');
     console.log(req.body);
     if (!(req.body).log) {
       req.body.log = [];
@@ -44,7 +45,8 @@ function addRoutes(db: mongodb.Db): void {
     });
   });
 
-  app.get('/api/locations/:id', (req: express.Request, res: express.Response) => {
+  app.get('/api/locations/:id', async (req: express.Request, res: express.Response) => {
+    const locationsCollection: mongodb.Collection = (await db).collection('locations');
     locationsCollection.findOne<RubbishLocation>({ id: req.params.id })
       .then((document: RubbishLocation) => {
         if (document !== null) {
@@ -58,7 +60,8 @@ function addRoutes(db: mongodb.Db): void {
       .catch((err) => console.error(`Location not found by id ${req.params.id}: ${err.message}`));
   });
 
-  app.post('/api/locations/search', (req: express.Request, res: express.Response) => {
+  app.post('/api/locations/search', async (req: express.Request, res: express.Response) => {
+    const locationsCollection: mongodb.Collection = (await db).collection('locations');
     res.status(200);
     res.setHeader('Content-Type', 'application/json');
 
@@ -100,6 +103,10 @@ function addRoutes(db: mongodb.Db): void {
 }
 
 app.listen(3000, async function () {
-  const db = await connectToDb();
-  addRoutes(db);
+  try {
+    const db = connectToDb();
+    addRoutes(db);
+  } catch (err) {
+    console.error(err);
+  }
 });
