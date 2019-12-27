@@ -1,7 +1,9 @@
 import { AxiosResponse, default as axios } from 'axios';
+import createAuth0Client from '@auth0/auth0-spa-js';
 import { ApiOps, LogEntry, RubbishLocation } from '../common';
+import Auth0Client from '@auth0/auth0-spa-js/dist/typings/Auth0Client';
 
-var map: google.maps.Map;
+let map: google.maps.Map;
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
@@ -46,7 +48,8 @@ function initMap() {
   });
 }
 
-function addLocation(button: HTMLButtonElement) {
+function addLocation() {
+  const button = this as HTMLButtonElement;
   button.setAttribute('style', 'display: none');
   var drawingManager: google.maps.drawing.DrawingManager = new google.maps.drawing.DrawingManager({
     drawingMode: google.maps.drawing.OverlayType.POLYGON,
@@ -180,6 +183,19 @@ function attachLog(locationId: string | number, cb: () => void) {
   }
 }
 
-(<any>window).initMap = initMap;
-(<any>window).addLocation = addLocation;
-(<any>window).saveLocation = saveLocation;
+window.addEventListener('load', () => {
+
+  (<any>window).addLocation = addLocation;
+  (<any>window).saveLocation = saveLocation;
+
+  if (document.getElementById('login-btn')) {
+    document.getElementById('login-btn').addEventListener('click', () => axios.get('/login', {
+      withCredentials: true
+    }));
+  }
+  if (document.getElementById('logout-btn')) {
+    document.getElementById('logout-btn').addEventListener('click', () => axios.get('/logout'));
+  }
+});
+
+(<any>window).initMap = initMap; 

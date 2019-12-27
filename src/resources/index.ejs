@@ -12,7 +12,6 @@
     #map {
       height: 50%;
     }
-    /* Optional: Makes the sample page fill the window. */
 
     html,
     body {
@@ -22,14 +21,23 @@
     }
   </style>
   <script src="https://unpkg.com/axios@0.17.0/dist/axios.min.js"></script>
-  <script src='bundle.js'></script>
+  <script src="bundle.js"></script>
 </head>
 
 <body>
+  <div style="display: flex">
+    <% if (!user) { %>
+    <a href="/login">Login</a>
+    <%} else {%> 
+    <div style="margin-left: 0; margin-right: auto;"><a href="/logout">Logout</a></div>
+    <div style="margin-right: 0; margin-left: auto;">Welcome, <%= user.displayName %></div>
+    <%}%>
+  </div>
   <div id="map"></div>
-  <input type='button' onclick='addLocation(this)' value='Add Location'></button>
-  <input type='button' value='Cancel Edit' style='display: none' id='cancel-edit-btn'></button>
-  <script src='https://maps.googleapis.com/maps/api/js?key=<%= apiKey %>&callback=initMap&&libraries=drawing' async defer></script>
+  <input type="button" id="add-location-btn" value="Add Location"></button>
+  <input type="button" id="cancel-edit-btn" value="Cancel Edit" style="display: none"></button>
+  <script src="https://maps.googleapis.com/maps/api/js?key=<%= apiKey %>&callback=initMap&&libraries=drawing" async
+    defer></script>
 </body>
 
 </html>

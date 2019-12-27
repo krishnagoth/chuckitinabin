@@ -1,6 +1,7 @@
-const path = require('path');
+import * as path from 'path';
+import webpack = require('webpack');
 
-module.exports = {
+export default {
   entry: './src/resources/map.ts',
   output: {
     filename: 'bundle.js',
@@ -28,4 +29,4 @@ module.exports = {
       path.join(__dirname, "node_modules")
     ]
   }
-};
+} as webpack.Configuration;
