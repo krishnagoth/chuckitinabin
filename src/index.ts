@@ -31,11 +31,11 @@ const strategy = new auth0Passport.Strategy({
   callbackURL: 'http://localhost:3000/successCallback'
 }, (_accessToken, _refreshToken, _extraParams, profile, done) => done(null, profile));
 
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function (user, done) {
   done(null, user);
 });
 
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser(function (user, done) {
   done(null, user);
 });
 
@@ -68,7 +68,9 @@ const connectToDb = async (): Promise<mongodb.Db> => {
 const addRoutes = async (app: Application, db: Promise<mongodb.Db>): Promise<void> => {
 
   app.get('/', (req: Request, res: Response) => {
-    const {user} = req;
+    const { user } = req;
+    console.log({user});
+
     res.render(__dirname + '/resources/index.ejs', {
       ...config.google,
       user
@@ -76,22 +78,25 @@ const addRoutes = async (app: Application, db: Promise<mongodb.Db>): Promise<voi
   });
 
   app.get('/login',
-    passport.authenticate('auth0', { scope: 'openid email profile' })
+    passport.authenticate('auth0',
+      <auth0Passport.AuthenticateOptions>{ scope: 'openid email profile', audience: 'http://localhost:3000/api' })
   );
 
   app.get('/successCallback',
     (req, res, next) => {
-      passport.authenticate('auth0', function (err, user, _info) {
-        if (err) { return next(err); }
-        if (!user) { return res.redirect('/login'); }
-        
-        req.login(user, function (err) {
+      passport.authenticate('auth0',
+        <auth0Passport.AuthenticateOptions>{ audience: 'http://localhost:3000/api' },
+        (err, user, _info) => {
           if (err) { return next(err); }
-          const returnTo = req.session.returnTo;
-          delete req.session.returnTo;
-          res.redirect(returnTo || '/');
-        });
-      })(req, res, next);
+          if (!user) { return res.redirect('/login'); }
+
+          req.login(user, function (err) {
+            if (err) { return next(err); }
+            const returnTo = req.session.returnTo;
+            delete req.session.returnTo;
+            res.redirect(returnTo || '/');
+          });
+        })(req, res, next);
     });
 
   app.get('/logout',
@@ -125,7 +130,7 @@ const addRoutes = async (app: Application, db: Promise<mongodb.Db>): Promise<voi
       locationsCollection.save(new RubbishLocation(req.body.geojson, req.body.log, id)).then((result: mongodb.WriteOpResult) => {
         console.log(result.result);
         res.status(200);
-        res.send(new ApiOps.Result({ id: id }).toString());
+        res.send(new ApiOps.Result({ id }).toString());
       }).catch((err: mongodb.MongoError) => {
         res.status(500);
         res.send();

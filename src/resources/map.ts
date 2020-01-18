@@ -196,6 +196,7 @@ window.addEventListener('load', () => {
   if (document.getElementById('logout-btn')) {
     document.getElementById('logout-btn').addEventListener('click', () => axios.get('/logout'));
   }
+  document.getElementById('add-location-btn').addEventListener('click', addLocation);
 });
 
 (<any>window).initMap = initMap; 

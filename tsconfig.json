@@ -13,8 +13,5 @@
       "DOM"
     ],
     "esModuleInterop": true
-  },
-  "include": [
-    "src/**/*"
-  ]
+  }
 }
