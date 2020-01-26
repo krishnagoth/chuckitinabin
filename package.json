@@ -1,12 +1,13 @@
 {
   "dependencies": {
-    "@auth0/auth0-spa-js": "^1.6.0",
     "axios": "^0.19.0",
     "body-parser": "^1.18.2",
     "ejs": "^2.5.7",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "geojson": "^0.5.0",
+    "jwt-decode": "^2.2.0",
+    "lodash": "^4.17.15",
     "mongodb": "^3.4.1",
     "passport": "^0.4.1",
     "passport-auth0": "^1.3.1",
@@ -20,19 +21,27 @@
     "@types/express-session": "^1.15.16",
     "@types/geojson": "^7946.0.7",
     "@types/googlemaps": "^3.29.2",
+    "@types/jwt-decode": "^2.2.1",
+    "@types/lodash": "^4.14.149",
     "@types/mongodb": "^3.3.13",
     "@types/node": "12",
     "@types/passport": "^1.0.2",
     "@types/passport-auth0": "^1.0.2",
     "@types/uuid": "^3.4.3",
     "@types/webpack": "^4.41.0",
+    "@typescript-eslint/eslint-plugin": "^2.17.0",
+    "@typescript-eslint/parser": "^2.17.0",
     "babel-core": "^6.26.0",
     "babel-loader": "^8.0.6",
     "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-node": "^5.1.1",
     "es6-promise": "^4.1.1",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "husky": "^4.2.1",
     "json-loader": "^0.5.7",
+    "prettier": "^1.19.1",
     "ts-loader": "^6.2.1",
     "ts-node": "^8.5.4",
     "ts-node-dev": "^1.0.0-pre.44",
@@ -45,6 +54,13 @@
   "scripts": {
     "start": "yarn webpack && ts-node src/index.ts",
     "start:dev": "TS_NODE_FILES=true ts-node-dev ./webpack.run.ts",
-    "build": "tsc && yarn webpack"
+    "build": "tsc && yarn webpack",
+    "lint": "yarn eslint",
+    "pretty": "yarn prettier --single-quote --write \"./src/**/*.ts\""
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn pretty"
+    }
   }
 }
