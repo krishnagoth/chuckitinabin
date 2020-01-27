@@ -27,7 +27,7 @@ const addRoutes = async (
 ): Promise<void> => {
   app.use(authRouter(config));
 
-  app.use(apiRouter(db, config));
+  app.use(apiRouter(db));
 
   app.get('/', (req: Request, res: Response) => {
     const { user } = req;

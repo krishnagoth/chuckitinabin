@@ -1,4 +1,3 @@
-import * as jsonConfig from '../../config.json';
 import express from 'express';
 import { accessMiddleware } from './auth';
 import mongodb from 'mongodb';
@@ -8,10 +7,7 @@ import * as url from 'url';
 
 import { RubbishLocation, ApiOps } from './../../common';
 
-export const apiRouter = (
-  db: Promise<mongodb.Db>,
-  config: typeof jsonConfig
-) => {
+export const apiRouter = (db: Promise<mongodb.Db>): express.Router => {
   const apiRouter = express.Router();
 
   apiRouter.use(bodyParser.json());
