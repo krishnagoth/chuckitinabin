@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Simple Map</title>
+  <title>Chuck It In a Bin</title>
   <meta name="viewport" content="initial-scale=1.0">
   <meta charset="utf-8">
   <style>
@@ -25,6 +25,11 @@
 </head>
 
 <body>
+  <% if (authnViolation) {%>
+    <div style="text-align: center;"><span style="color: red; font-weight: bold;">There was an issue with your authentication session, please log in again.</span></div>
+  <% } else if (authzViolation) { %>
+    <div style="text-align: center;"><span style="color: red; font-weight: bold;">You don't have permissions to perform this action.</span></div>
+  <% } %>
   <div style="display: flex">
     <% if (!user) { %>
     <a href="/login">Login</a>
@@ -34,8 +39,10 @@
     <%}%>
   </div>
   <div id="map"></div>
-  <input type="button" id="add-location-btn" value="Add Location"></button>
-  <input type="button" id="cancel-edit-btn" value="Cancel Edit" style="display: none"></button>
+  <% if (user) { %>
+    <input type="button" id="add-location-btn" value="Add Location"></button>
+    <input type="button" id="cancel-edit-btn" value="Cancel Edit" style="display: none"></button>
+  <% } %>
   <script src="https://maps.googleapis.com/maps/api/js?key=<%= apiKey %>&callback=initMap&&libraries=drawing" async
     defer></script>
 </body>

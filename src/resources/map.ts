@@ -149,20 +149,24 @@ function addLocation() {
   });
 }
 
-function saveLocation(form: HTMLFormElement) {
+async function saveLocation(form: HTMLFormElement) {
   var fd = new FormData(form);
-  axios
-    .post<ApiOps.Result<ApiOps.RubbishLocationId>>(
-      form.action,
-      new RubbishLocation(JSON.parse(fd.get('geojson').toString()), [
-        new LogEntry(fd.get('logEntry').toString())
-      ])
-    )
-    .then((res: AxiosResponse<ApiOps.Result<ApiOps.RubbishLocationId>>) => {
-      if (res.status === 200) {
-        const locationId = res.data.data.id;
-      }
-    });
+
+  const res = await axios.post<ApiOps.Result<ApiOps.RubbishLocationId>>(
+    form.action,
+    new RubbishLocation(JSON.parse(fd.get('geojson').toString()), [
+      new LogEntry(fd.get('logEntry').toString())
+    ]),
+    {
+      validateStatus: s => [200, 401, 403].includes(s)
+    }
+  );
+
+  if (401 === res.status) {
+    window.location.href = '/?authnViolation=true';
+  } else if (403 === res.status) {
+    window.location.href = '/?authzViolation=true';
+  }
 }
 
 function loadLocations(map: google.maps.Map) {

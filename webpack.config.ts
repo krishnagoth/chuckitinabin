@@ -1,5 +1,5 @@
 import * as path from 'path';
-import webpack = require('webpack');
+import webpack from 'webpack';
 
 export default {
   entry: './src/resources/map.ts',
