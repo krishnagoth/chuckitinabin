@@ -9,7 +9,7 @@ import jwtDecode from 'jwt-decode';
 import _ from 'lodash';
 import connect from 'connect-mongodb-session';
 
-export const authRouter = (config: typeof jsonConfig) => {
+export const authRouter = (config: typeof jsonConfig): express.Router => {
   const authRouter = express.Router();
 
   const MongoDBStore = connect(session);
@@ -70,18 +70,18 @@ export const authRouter = (config: typeof jsonConfig) => {
 
   authRouter.get(
     '/login',
-    passport.authenticate('auth0', <auth0Passport.AuthenticateOptions>{
+    passport.authenticate('auth0', {
       scope: 'openid email profile',
       audience: 'http://localhost:3000/api'
-    })
+    } as auth0Passport.AuthenticateOptions)
   );
 
   authRouter.get('/successCallback', (req, res, next) => {
     passport.authenticate(
       'auth0',
-      <auth0Passport.AuthenticateOptions>{
+      {
         audience: 'http://localhost:3000/api'
-      },
+      } as auth0Passport.AuthenticateOptions,
       (err, user, _info) => {
         if (err) {
           return next(err);
@@ -108,13 +108,15 @@ export const authRouter = (config: typeof jsonConfig) => {
   authRouter.get('/logout', (req, res) => {
     req.logout();
 
-    var returnTo = req.protocol + '://' + req.hostname;
-    var port = req.connection.localPort;
-    if (port !== undefined && port !== 80 && port !== 443) {
-      returnTo += ':' + port;
-    }
+    const port = req.connection.localPort;
+    const returnTo =
+      req.protocol +
+      '://' +
+      req.hostname +
+      (port !== undefined && port !== 80 && port !== 443 ? port : '');
+
     const logoutURL = new url.URL(`https://${config.auth0.domain}/v2/logout`);
-    var searchString = querystring.stringify({
+    const searchString = querystring.stringify({
       client_id: config.auth0.clientID,
       returnTo: returnTo
     });
@@ -138,11 +140,11 @@ export const accessMiddleware: (
   req,
   res,
   next
-) => {
+): void => {
   if (req.user) {
     const missingPermissions = _.difference(
       accessPermissions,
-      (req.user as any).permissions
+      (req.user as any).permissions // eslint-disable-line @typescript-eslint/no-explicit-any
     );
     if (missingPermissions.length === 0) {
       next();

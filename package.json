@@ -58,7 +58,7 @@
     "start": "yarn webpack && ts-node src/index.ts",
     "start:dev": "TS_NODE_FILES=true ts-node-dev ./webpack.run.ts",
     "build": "tsc && yarn webpack",
-    "lint": "yarn eslint",
+    "lint": "yarn eslint \"./src/**/*.ts\"",
     "pretty": "yarn prettier --single-quote --write \"./src/**/*.ts\""
   },
   "husky": {
@@ -68,6 +68,7 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
+      "yarn lint",
       "yarn prettier",
       "git add"
     ]
