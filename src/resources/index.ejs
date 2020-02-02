@@ -32,10 +32,10 @@
   <% } %>
   <div style="display: flex">
     <% if (!user) { %>
-    <a href="/login">Login</a>
+      <a href="/login">Login</a>
     <%} else {%> 
-    <div style="margin-left: 0; margin-right: auto;"><a href="/logout">Logout</a></div>
-    <div style="margin-right: 0; margin-left: auto;">Welcome, <%= user.displayName %></div>
+      <div style="margin-left: 0; margin-right: auto;"><a href="/logout">Logout</a></div>
+      <div style="margin-right: 0; margin-left: auto;">Welcome, <%= user.displayName %></div>
     <%}%>
   </div>
   <div id="map"></div>
