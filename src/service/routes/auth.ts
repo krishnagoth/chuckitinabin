@@ -87,7 +87,7 @@ export const authRouter = (config: typeof jsonConfig): express.Router => {
           return next(err);
         }
         if (!user) {
-          return res.redirect('/?authViolation=true');
+          return res.redirect('/?authnViolation=true');
         }
 
         const decodedToken = jwtDecode<AccessToken>(_info.access_token);

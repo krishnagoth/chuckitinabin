@@ -35,7 +35,8 @@ const addRoutes = async (
     res.render(__dirname + '/resources/index.ejs', {
       ...config.google,
       user,
-      authViolation: req.query.authViolation
+      authnViolation: req.query.authnViolation,
+      authzViolation: req.query.authzViolation
     });
   });
 };
